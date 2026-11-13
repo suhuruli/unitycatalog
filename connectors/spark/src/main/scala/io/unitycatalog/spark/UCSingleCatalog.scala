@@ -35,7 +35,6 @@ import org.apache.spark.sql.connector.expressions.Transform
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.util.CaseInsensitiveStringMap
-import org.sparkproject.guava.base.Preconditions
 
 /**
  * A Spark catalog plugin to get/manage tables in Unity Catalog.
@@ -84,8 +83,9 @@ class UCSingleCatalog
 
   override def initialize(name: String, options: CaseInsensitiveStringMap): Unit = {
     val urlStr = options.get(OptionsUtil.URI)
-    Preconditions.checkArgument(urlStr != null,
-      "uri must be specified for Unity Catalog '%s'", name)
+    if (urlStr == null) {
+      throw new IllegalArgumentException(s"uri must be specified for Unity Catalog '$name'")
+    }
     uri = new URI(urlStr)
     tokenProvider = TokenProvider.create(AuthConfigUtils.buildAuthConfigs(options));
     renewCredEnabled = options.getBoolean(
@@ -845,10 +845,10 @@ object UCSingleCatalog {
   def requireProviderSpecified(
       operation: String,
       properties: util.Map[String, String]): Unit = {
-    Preconditions.checkArgument(
-      properties.get(TableCatalog.PROP_PROVIDER) != null,
-      "%s requires USING <format> (for example, USING DELTA)",
-      operation)
+    if (properties.get(TableCatalog.PROP_PROVIDER) == null) {
+      throw new IllegalArgumentException(
+        s"$operation requires USING <format> (for example, USING DELTA)")
+    }
   }
 
   /**

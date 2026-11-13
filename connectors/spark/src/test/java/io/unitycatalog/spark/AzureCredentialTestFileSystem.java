@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.unitycatalog.hadoop.internal.UCHadoopConfConstants;
 import io.unitycatalog.hadoop.internal.auth.AbfsVendedTokenProvider;
+import java.util.Objects;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.sparkproject.guava.base.Objects;
 
 public class AzureCredentialTestFileSystem extends CredentialTestFileSystem {
   private volatile AbfsVendedTokenProvider provider;
@@ -45,7 +45,7 @@ public class AzureCredentialTestFileSystem extends CredentialTestFileSystem {
       synchronized (this) {
         if (provider == null) {
           String clazz = conf.get(UCHadoopConfConstants.FS_AZURE_SAS_TOKEN_PROVIDER_TYPE);
-          if (Objects.equal(clazz, AbfsVendedTokenProvider.class.getName())) {
+          if (Objects.equals(clazz, AbfsVendedTokenProvider.class.getName())) {
             provider = new AbfsVendedTokenProvider();
             provider.initialize(conf, "testAccountName");
           }

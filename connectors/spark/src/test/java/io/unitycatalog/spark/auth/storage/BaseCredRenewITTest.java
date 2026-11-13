@@ -35,10 +35,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterators;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -58,8 +60,6 @@ import org.junit.jupiter.params.Parameter;
 import org.junit.jupiter.params.ParameterizedClass;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
-import org.sparkproject.guava.collect.ImmutableList;
-import org.sparkproject.guava.collect.Iterators;
 
 /**
  * Integration test to verify that cloud vendor credential renewal works as expected.
@@ -300,7 +300,7 @@ public abstract class BaseCredRenewITTest extends BaseCRUDTest {
             .collect();
 
     assertThat(rows.stream().map(r -> r.getInt(0)).collect(Collectors.toList()))
-        .isEqualTo(ImmutableList.of(10));
+        .isEqualTo(List.of(10));
   }
 
   @Test
@@ -334,7 +334,9 @@ public abstract class BaseCredRenewITTest extends BaseCRUDTest {
                 input -> {
                   // Advance the clock to trigger the credential renewal.
                   testClock().sleep(Duration.ofMillis(DEFAULT_INTERVAL_MILLIS));
-                  return Iterators.transform(input, row -> row.getInt(0));
+                  return StreamSupport.stream(Spliterators.spliteratorUnknownSize(input, 0), false)
+                      .map(row -> row.getInt(0))
+                      .iterator();
                 },
             Encoders.INT())
         .withColumnRenamed("value", "id")
@@ -346,7 +348,7 @@ public abstract class BaseCredRenewITTest extends BaseCRUDTest {
     List<Row> rows = sql("SELECT * FROM %s ORDER BY id ASC", dstTable);
     assertThat(rows.size()).isEqualTo(3);
     assertThat(rows.stream().map(r -> r.getInt(0)).collect(Collectors.toList()))
-        .isEqualTo(ImmutableList.of(1, 2, 3));
+        .isEqualTo(List.of(1, 2, 3));
   }
 
   /**

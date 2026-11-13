@@ -167,6 +167,11 @@
         </module>
         <module name="UnusedImports"/>
         <module name="RedundantImport"/>
+        <!-- Spark relocates its third-party dependencies (e.g. Guava) under org.sparkproject only
+             in its Maven build; code importing them fails on an sbt-built Spark. -->
+        <module name="IllegalImport">
+            <property name="illegalPkgs" value="org.sparkproject"/>
+        </module>
         <module name="RedundantModifier"/>
         <module name="RegexpSinglelineJava">
             <property name="format" value="throw new \w+Error\("/>

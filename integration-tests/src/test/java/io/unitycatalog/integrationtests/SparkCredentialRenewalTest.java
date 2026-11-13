@@ -20,8 +20,10 @@ import io.unitycatalog.spark.utils.OptionsUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterators;
 import java.util.UUID;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
@@ -30,7 +32,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.sparkproject.guava.collect.Iterators;
 
 /**
  * Typically, cloud vendor credentials (used to access cloud storage) issued by the UC server expire
@@ -178,7 +179,9 @@ public class SparkCredentialRenewalTest {
             (MapPartitionsFunction<Row, Integer>)
                 input -> {
                   Thread.sleep(100 * 1000L);
-                  return Iterators.transform(input, row -> row.getInt(0));
+                  return StreamSupport.stream(Spliterators.spliteratorUnknownSize(input, 0), false)
+                      .map(row -> row.getInt(0))
+                      .iterator();
                 },
             Encoders.INT())
         .withColumnRenamed("value", "id")
